@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*~
+DEADJOE
+app/.env
+app/key.pem
+app/cert.pem
+README.md_smithFolder
+
 # C extensions
 *.so
 

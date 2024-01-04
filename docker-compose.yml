@@ -1,0 +1,15 @@
+version: '3'
+services:
+  ffcs-db-server:
+    container_name: ffcs-db-server
+    build: .
+    restart: always
+    ports:
+      - 8081:8081
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - ffcs-network
+
+networks:
+  ffcs-network:
