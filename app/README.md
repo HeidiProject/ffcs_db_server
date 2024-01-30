@@ -1,85 +1,102 @@
 # ffcs_db_server
 
-ffcs_db_server is a python Fast-API server for interacting with mongoDB.
+ffcs_db_server is a python FastAPI server for interacting with mongoDB.
 
-## Connection to FFCS DB through ffcsdbclient
+## Connection to FFCS DB Through ffcsdbclient
 
-ffcs_db_server initiates an instances of the previously used ffcsdbclient
-class, which in turn connects to the FFCS DB. All methods of the new
-ffcs_db_client adress API endpoints in ffcs_db_server that, in turn, use
-methods from ffcsdbclient.
+ffcs_db_server initiates an instance of the ffcs_db_utils class , which in turn
+connects to the FFCS DB. To enable a seamless transition from the previously
+used, now deprecated clien class (`ffcsdbclient`; not to be confused with
+the new `ffcs_db_client` class), all of its functions were transferred to
+the new ffcs_db_utils class. All methods of the new ffcs_db_client class
+adress API endpoints in ffcs_db_server that, in turn, use methods from
+ffcs_db_utils.
 
-	ffcs_db_client <-> ffcs_db_server <-> ffcsdbclient
+        ffcs_db_client <-> ffcs_db_server <-> ffcs_db_utils
 
 All methods of ffcs_db_client require the same input as the eponymous
 methods from ffcs_db_client to enable a seamless exange of the old client
-(ffcsdbclient) by the new client (ffcs_db_client). For this purpose, also
+(`ffcsdbclient`) by the new client (`ffcs_db_client`). For this purpose, also
 the output format of ffcs_db_client should be identical to that of
 ffcsdbclient.
 
-However, some methods of ffcsdbclient return documents containing ObjectIDs
-or MongoDB pointers that cannot be transmitted through Fast-API and were
-converted accrodingly (to strings or a CursorMock object).
+However, some methods of ffcsdbclient return documents containing datetime
+objects, MongoDB ObjectIDs, or MongoDB pointers, which cannot be transmitted
+through FastAPI. Such objects and were converted to strings, transmitted
+through FastAPI, and then converted back to the respective object or CursorMock
+objects as appropriate.
 
-## Old or new style of output of MongoDB update (old) and update_one
-## update_many
+## Updates from Deprecated Pre-MongoDB v3.2 Database Interactions
 
-## Auxilliary methods
+In the latest update, we have upgraded our database interaction functions to
+align with the MongoDB v5.0 standards. This includes the utilization of
+`update_one`, `update_many`, `insert_one`, `find_one`, `delete_one`, and other
+similar methods. These methods offer enhanced clarity and functionality
+compared to their predecessors.
+
+To ensure backward compatibility and facilitate a seamles transition to the new
+`ffcs_db_client` class, we have implemented a system where the result objects
+returned by these new functions are converted to match the format and structure
+of the pre-v3.2 specifications. This approach ensures that existing
+applications integrating with our database can continue to operate without any
+significant changes, while new applications can take full advantage of the
+improvements in MongoDB's latest version.
+
+Please note that while we strive to maintain backward compatibility, we
+encourage users to update their code to utilize the new API methods for better
+performance and future compatibility.
+
+## Auxilliary Methods
 
 A number of auxilliary functions was added to ffcsdbclient, which are mostly
-used for the integration test in ffcs_db_client_integration_test.py.
+used for the integration test in `ffcs_db_client_integration_test.py`.
 
-	add_campaign_library: Adds a campaign library
-		
-	delete_by_id
-	delete_by_query
-	get_notifications
-	get_one_campaign_library
-	get_one_library
-	print_update_result
-	update_by_object_id_NEW
+        add_campaign_library: Adds a campaign library
 
-## Pydantic base models
+        delete_by_id
+        delete_by_query
+        get_notifications
+        get_one_campaign_library
+        get_one_library
+        print_update_result
+        update_by_object_id_NEW
+
+## Pydantic Base Models
 
 Specific outputs and inputs of API endpoints in ffcs_db_server are defined
 through pydantic base models. This was done on a case-to-case basis and
 could be improved for consistency.
 
 ### Managing the fccs_db_server in Docker
-## stopping | building | starting
+## Stopping | Building | Starting
 
-	cd /sls/MX/applications/git/ffcs/ffcs_db_server
+        cd /sls/MX/applications/git/ffcs/ffcs_db_server
         cd /home/smith_k/ffcs_db_server
-	docker-compose down
-	docker-compose build --no-cache
-	docker-compose up ### with -d flag for running detached
+        docker-compose down
+        docker-compose build --no-cache
+        docker-compose up ### with -d flag for running detached
 
 ## Dockerfile
 
-	FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
-	
-	COPY ./app /app
-	
-	RUN pip install pymongo python-dateutil
-	
-	EXPOSE 8000
-	
-	#CMD ["uvicorn", "ffcs_db_server:app", "--host", "0.0.0.0", "--port", "8081"]
-	CMD ["uvicorn", "ffcs_db_server:app", "--host", "0.0.0.0", "--port", "8081", "--ssl-keyfile", "/app/key.pem", "--ssl-certfile", "/app/cert.pem"]
+        FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
-### Knows issues
+        COPY ./app /app
 
-	In FFCS_GUI, the "export to soak" window does not show a list of
-	to-be-exporter campaigns.
-	"I think I found out why the table does not show any plates to export. In ExportToSoakDialog.py there is a function refresh_tables that only adds plates to the exported list if the well has zero wells without label ("== 0") ... I think this should be "!= 0" or maybe the button is supposed to only work for fully unlabeled plates. However, I cannot test it because I dont have write
-	permissions."
+        RUN pip install pymongo python-dateutil
+
+        EXPOSE 8000
+
+        #CMD ["uvicorn", "ffcs_db_server:app", "--host", "0.0.0.0", "--port", "8081"]
+        CMD ["uvicorn", "ffcs_db_server:app", "--host", "0.0.0.0", "--port", "8081", "--ssl-keyfile", "/app/key.pem", "--ssl-certfile", "/app/cert.pem"]
+
+### Knows Issues
 
 ### Git
 
-	git pull
-	git status
-	git add . && git commit -a -m "Work in progress: converting ffcsdbclient functionality"
-	git push
+        git pull
+        git status
+        git add . && git commit -a -m "Work in progress: converting ffcsdbclient functionality"
+        git push
         git pull ; git status ; git add . && git commit -a -m "Canonicalized API endpoint url names" ; git push
 
 ## Getting started
